@@ -1,18 +1,23 @@
 <?php
 
 namespace Root\App\Services;
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
 class MailerService
 {
+
     /**
      * @var PHPMailer
      */
     private PHPMailer $mailer;
+
     public function __construct()
     {
         $this->mailer = new PHPMailer(true);
     }
+
     /**
      * @param string $subject
      * @param string $body
@@ -20,25 +25,27 @@ class MailerService
      */
     public function sendEmail(string $subject, string $body): bool
     {
+        $decodedBody = json_decode($body, true);
         try {
             $this->mailer->isSMTP();
-            $this->mailer->Host = 'sandbox.smtp.mailtrap.io';
+            $this->mailer->Host = getenv('MAILER_USER_HOST');
             $this->mailer->SMTPAuth = true;
-            $this->mailer->Username = '68c341c89fef68';
-            $this->mailer->Password = '47f75779339bf8';
+            $this->mailer->Username = getenv('MAILER_USERNAME');
+            $this->mailer->Password = getenv('MAILER_USER_PASSWORD');
             $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $this->mailer->Port = 2525;
-            $this->mailer->setFrom('mailer@gmail.com', 'Mailer');
-            $this->mailer->addAddress('lymphbizkit@gmail.com', 'Recipient');
-            $this->mailer->isHTML(true);
+            $this->mailer->Port = getenv('MAILER_PORT');
+            $this->mailer->setFrom(getenv('MAILER_EMAIL_ADDRESS'), getenv('MAILER_EMAIL_NAME'));
+            $this->mailer->addAddress($decodedBody['email'], 'Recipient');
+            $this->mailer->isHTML();
             $this->mailer->Subject = $subject;
-            $this->mailer->Body    = $body;
+            $this->mailer->Body = $body;
             $this->mailer->send();
-            echo 'Message has been sent to lymphbizkit@gmail.com';
+            echo 'Message has been sent to: ' . $decodedBody['email'];
             return true;
         } catch (Exception $e) {
             echo "Message could not be sent. Mailer Error: {$this->mailer->ErrorInfo}";
             return false;
         }
     }
+
 }

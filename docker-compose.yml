@@ -91,6 +91,12 @@ services:
             RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
             RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
             RABBITMQ_DEFAULT_PORT: ${RABBITMQ_PORT}
+            MAILER_USERNAME: ${MAILER_USERNAME}
+            MAILER_USER_PASSWORD: ${MAILER_USER_PASSWORD}
+            MAILER_USER_HOST: ${MAILER_USER_HOST}
+            MAILER_EMAIL_ADDRESS: ${MAILER_EMAIL_ADDRESS}
+            MAILER_EMAIL_NAME: ${MAILER_EMAIL_NAME}
+            MAILER_PORT: ${MAILER_PORT}
         volumes:
             - ./mailer:/var/www/app
         ports:

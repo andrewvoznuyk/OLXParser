@@ -23,7 +23,7 @@ class RabbitMqService implements RabbitMqServiceInterface
      * @param string $queueName
      * @throws Exception
      */
-    public function __construct($rabbitHost, $rabbitPort, $rabbitUser, $rabbitPassword, $queueName = 'send-email')
+    public function __construct($rabbitHost, $rabbitPort, $rabbitUser, $rabbitPassword, string $queueName = 'send-email')
     {
         $this->queueName = $queueName;
         try {
@@ -53,8 +53,6 @@ class RabbitMqService implements RabbitMqServiceInterface
     }
 
     /**
-     * Send a message to the RabbitMQ queue.
-     *
      * @param string $message
      * @return void
      * @throws Exception
