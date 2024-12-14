@@ -7,13 +7,10 @@ RUN apk update && apk add \
     libpng-dev \
     libxml2-dev \
     zip \
-    unzip \
-    libsocket++0 libsocket++-dev
+    unzip
 
 RUN docker-php-ext-install pdo pdo_mysql \
     && apk --no-cache add nodejs npm
-
-RUN docker-php-ext-sockets bcmath
 
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 

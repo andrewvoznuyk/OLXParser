@@ -1,12 +1,11 @@
 <?php
 
-namespace Root\App\Services;
+namespace App\Services;
 
+use App\Contracts\RabbitMqServiceInterface;
 use Exception;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Message\AMQPMessage;
-use Root\App\Contracts\RabbitMqServiceInterface;
 
 class RabbitMqService implements RabbitMqServiceInterface
 {

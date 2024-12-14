@@ -9,10 +9,10 @@ services:
         ports:
             - "8001:8001"
         volumes: 
-            - ./src:/var/www/app
-            - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - ./laravel:/var/www/app
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
         depends_on: 
-            - php
+            - laravel
             - mysql
         networks: 
             - "${NETWORK_NAME}"
@@ -54,20 +54,50 @@ services:
         networks:
             - ${NETWORK_NAME}
 
-    php:
+    laravel:
         build:
-            context: .
-            dockerfile: Dockerfile
-        container_name: php
+            context: laravel
+            dockerfile: ../docker/laravel/Dockerfile
+        container_name: laravel
         restart: unless-stopped
         tty: true
         working_dir: /var/www/app
-        volumes: 
-            - ./src:/var/www/app
+        environment:
+            RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_HOST: ${RABBITMQ_HOST}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+            RABBITMQ_DEFAULT_PORT: ${RABBITMQ_PORT}
+        volumes:
+            - ./laravel:/var/www/app
         ports: 
             - "${PHP_HOST_PORT}:${PHP_DOCKER_CONTAINER_PORT}"
         networks: 
             - "${NETWORK_NAME}"
+
+    mailer:
+        build:
+            context: ./mailer
+            dockerfile: ../docker/mailer/Dockerfile
+        container_name: mailer
+        restart: unless-stopped
+        tty: true
+        working_dir: /var/www/app
+        environment:
+            RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_HOST: ${RABBITMQ_HOST}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+            RABBITMQ_DEFAULT_PORT: ${RABBITMQ_PORT}
+        volumes:
+            - ./mailer:/var/www/app
+        ports:
+            - "${PHP_MAILER_HOST_PORT}:${PHP_MAILER_DOCKER_CONTAINER_PORT}"
+        networks:
+            - "${NETWORK_NAME}"
+        command: "${MAILER_START_COMMAND}"
 
 networks:
     laravel:

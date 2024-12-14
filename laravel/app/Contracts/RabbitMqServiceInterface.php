@@ -1,6 +1,6 @@
 <?php
 
-namespace Root\App\Contracts;
+namespace App\Contracts;
 
 
 interface RabbitMqServiceInterface

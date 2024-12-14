@@ -35,7 +35,7 @@ class CreateProductPriceAction
      * @param string $link
      * @return Builder
      */
-    protected function getPrice(string $link): \Illuminate\Database\Query\Builder
+    protected function getPrice(string $link): Builder
     {
         return DB::table('prices')->where('link', $link)->latest('created_at');
     }
