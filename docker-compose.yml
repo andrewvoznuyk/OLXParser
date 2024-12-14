@@ -1,9 +1,5 @@
 version: '3'
 
-networks: 
-    laravel:
-        driver: bridge
-
 services: 
     nginx:
         image: nginx:alpine
@@ -19,7 +15,7 @@ services:
             - php
             - mysql
         networks: 
-            - laravel
+            - "${NETWORK_NAME}"
 
     mysql:
         platform: linux/amd64
@@ -32,14 +28,31 @@ services:
         volumes: 
             - ./mysql:/var/lib/mysql
         environment: 
-            MYSQL_DATABASE: laravel_docker
-            MYSQL_USER: user
-            MYSQL_PASSWORD: user
-            MYSQL_ROOT_PASSWORD: root
-            SERVICE_TAGS: dev
-            SERVICE_NAME: mysql
+            MYSQL_DATABASE: "${MYSQL_DATABASE}"
+            MYSQL_USER: "${MYSQL_USER}"
+            MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+            MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+            SERVICE_TAGS: "${MYSQL_SERVICE_TAGS}"
+            SERVICE_NAME: "${MYSQL_SERVICE_NAME}"
         networks: 
-            - laravel
+            - "${NETWORK_NAME}"
+
+    rabbitmq:
+        image: rabbitmq:3-management-alpine
+        container_name: 'rabbitmq'
+        restart: unless-stopped
+        ports:
+            - "15672:15672"
+        environment:
+            RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+        volumes:
+            - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+            - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+        networks:
+            - ${NETWORK_NAME}
 
     php:
         build:
@@ -54,4 +67,8 @@ services:
         ports: 
             - "${PHP_HOST_PORT}:${PHP_DOCKER_CONTAINER_PORT}"
         networks: 
-            - laravel
+            - "${NETWORK_NAME}"
+
+networks:
+    laravel:
+        driver: bridge
