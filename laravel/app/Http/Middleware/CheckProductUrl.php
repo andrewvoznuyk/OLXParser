@@ -25,7 +25,8 @@ class CheckProductUrl
         protected CreateProductPriceAction   $productPriceAction,
         protected LinkParserServiceInterface $linkParserService
     )
-    {}
+    {
+    }
 
     /**
      * @param Request $request
@@ -42,14 +43,15 @@ class CheckProductUrl
         }
 
         $product = $this->ensureProductExists($link);
+        $data = $this->linkParserService->getLinkData($link);
+
         if (!$product) {
-            $data = $this->linkParserService->getLinkData($link);
             if (!$data['isSucceed']) {
                 return $data;
             }
             ($this->productAction)($link, $data['name']);
-            ($this->productPriceAction)($link, $data['price']);
         }
+        ($this->productPriceAction)($link, $data['price']);
 
         return $next($request);
     }
