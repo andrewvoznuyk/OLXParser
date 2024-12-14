@@ -6,9 +6,11 @@ use App\Contracts\RabbitMqServiceInterface;
 use Exception;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 
 class RabbitMqService implements RabbitMqServiceInterface
 {
+
     private AMQPStreamConnection $connection;
     private AMQPChannel $channel;
     private string $queueName;
@@ -21,21 +23,13 @@ class RabbitMqService implements RabbitMqServiceInterface
      * @param string $queueName
      * @throws Exception
      */
-    public function __construct($rabbitHost, $rabbitPort, $rabbitUser, $rabbitPassword, $queueName = 'send-email')
+    public function __construct($rabbitHost, $rabbitPort, $rabbitUser, $rabbitPassword, string $queueName = 'send-email')
     {
         $this->queueName = $queueName;
 
-        try {
-            $this->connection = new AMQPStreamConnection($rabbitHost, $rabbitPort, $rabbitUser, $rabbitPassword);
-            $this->channel = $this->connection->channel();
-
-            echo "Connected to RabbitMQ successfully!\n";
-
-            $this->channel->queue_declare($this->queueName, false, true, false, false);
-        } catch (Exception $e) {
-            echo 'Error: ' . $e->getMessage() . "\n";
-            exit(1);
-        }
+        $this->connection = new AMQPStreamConnection($rabbitHost, $rabbitPort, $rabbitUser, $rabbitPassword);
+        $this->channel = $this->connection->channel();
+        $this->channel->queue_declare($this->queueName, false, true, false, false);
     }
 
     /**
@@ -56,24 +50,17 @@ class RabbitMqService implements RabbitMqServiceInterface
     }
 
     /**
-     * Send a message to the RabbitMQ queue.
-     *
      * @param string $message
      * @return void
      * @throws Exception
      */
     public function sendMessage(string $message): void
     {
-        try {
-            $amqpMessage = new AMQPMessage($message, [
-                'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
-            ]);
+        $amqpMessage = new AMQPMessage($message, [
+            'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
+        ]);
 
-            $this->channel->basic_publish($amqpMessage, '', $this->queueName);
-
-            echo "Message sent to queue '{$this->queueName}': {$message}\n";
-        } catch (Exception $e) {
-            echo "Failed to send message: {$e->getMessage()}\n";
-        }
+        $this->channel->basic_publish($amqpMessage, '', $this->queueName);
     }
+
 }

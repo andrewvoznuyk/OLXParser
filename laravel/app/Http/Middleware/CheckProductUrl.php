@@ -6,9 +6,12 @@ use App\Action\CreateProductAction;
 use App\Action\CreateProductPriceAction;
 use App\Action\CreateSubscriptionAction;
 use App\Contracts\LinkParserServiceInterface;
-use Closure;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Closure;
 
 class CheckProductUrl
 {
@@ -28,41 +31,63 @@ class CheckProductUrl
     {
     }
 
-    /**
-     * @param Request $request
-     * @param Closure $next
-     * @return mixed
-     */
-    public function handle(Request $request, Closure $next): mixed
+    public function handle(Request $request, Closure $next): JsonResponse
     {
         $link = $request->input('link');
         $email = $request->input('email');
 
-        if (!$link || !$email) {
-            return response()->json(['error' => 'Link and email are required.'], 400);
+        if (!$this->validateInputs($link, $email)) {
+            return new JsonResponse(['error' => 'Link and email are required.'], Response::HTTP_BAD_REQUEST);
         }
 
         $product = $this->ensureProductExists($link);
-        $data = $this->linkParserService->getLinkData($link);
-
-        if (!$product) {
-            if (!$data['isSucceed']) {
-                return $data;
-            }
-            ($this->productAction)($link, $data['name']);
+        if ($product->exists()) {
+            return $next($request);
         }
-        ($this->productPriceAction)($link, $data['price']);
+
+        if (!$this->handleNewProduct($link)['isSucceed']) {
+            return new JsonResponse(['error' => 'Invalid link.'], Response::HTTP_BAD_REQUEST);
+        }
 
         return $next($request);
     }
 
     /**
-     * @param string $link
+     * @param string|null $link
+     * @param string|null $email
      * @return bool
      */
-    protected function ensureProductExists(string $link): bool
+    protected function validateInputs(?string $link, ?string $email): bool
     {
-        return DB::table('products')->where('link', $link)->exists();
+        return $link && $email;
+    }
+
+    /**
+     * @param string $link
+     * @return array
+     */
+    protected function handleNewProduct(string $link): array
+    {
+        $data = $this->linkParserService->getLinkData($link);
+
+        if (!$data['isSucceed']) {
+            return $data;
+        }
+
+        ($this->productAction)($link, $data['name']);
+        ($this->productPriceAction)($link, $data['price']);
+
+        return $data;
+    }
+
+    /**
+     * @param string $link
+     * @return Builder
+     */
+    protected function ensureProductExists(string $link): Builder
+    {
+        return DB::table('products')->where('link', $link)->latest();
     }
 
 }
+

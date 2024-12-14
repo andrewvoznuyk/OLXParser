@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Action\CreateProductAction;
 use App\Action\CreateSubscriptionAction;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,11 +17,15 @@ class SubscriptionController
      * @param CreateProductAction $productAction
      */
     public function __construct(
-        protected CreateSubscriptionAction   $subscriptionAction,
-        protected CreateProductAction        $productAction,
+        protected CreateSubscriptionAction $subscriptionAction,
+        protected CreateProductAction      $productAction,
     )
-    {}
+    {
+    }
 
+    /**
+     * @throws Exception
+     */
     public function subscribe(Request $request): JsonResponse
     {
         $link = $request->input('link');
