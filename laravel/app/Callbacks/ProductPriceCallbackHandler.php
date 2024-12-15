@@ -63,11 +63,7 @@ class ProductPriceCallbackHandler
      */
     protected function getSubscribedUserEmailsByProductLink(string $productLink): array
     {
-        return DB::table('subscriptions')
-            ->join('products', 'subscriptions.link', '=', 'products.link')
-            ->where('products.link', $productLink)
-            ->pluck('subscriptions.email')
-            ->toArray();
+        return DB::table('subscriptions')->where('link', $productLink)->pluck('email')->toArray();
     }
 
 }
