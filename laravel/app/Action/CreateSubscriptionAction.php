@@ -32,6 +32,8 @@ class CreateSubscriptionAction
             'link'  => $link
         ]);
 
+        $subscription->save();
+
         $this->rabbitMqService->sendMessage($this->encodeMessage($email, $link));
 
         return $subscription;
