@@ -5,6 +5,7 @@ namespace App\Callbacks;
 use App\Action\CreateProductPriceAction;
 use App\Contracts\LinkParserServiceInterface;
 use App\Contracts\RabbitMqServiceInterface;
+use App\Services\MessageHandlerService;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -26,7 +27,6 @@ class ProductPriceCallbackHandler
     public function handle(AMQPMessage $message): void
     {
         $link = json_decode($message->body, true)['link'];
-        echo $link . "\n";
         if (!$link){
             return;
         }
@@ -40,29 +40,11 @@ class ProductPriceCallbackHandler
         if ((float)$product->value('price') === (float)$data['price']){
             return;
         }
-        echo "Price changed for $link" . "\n";
+
         ($this->productPriceAction)($link, $data['price']);
-        foreach ($this->getSubscribedUserEmailsByProductLink($link) as $user){
-            $this->rabbitMqService->sendMessage($this->encodeMessage($user, $link));
+        foreach ($this->getSubscribedUserEmailsByProductLink($link) as $email){
+            $this->rabbitMqService->sendMessage(MessageHandlerService::encodeMessage($email, $link));
         }
-    }
-
-    /**
-     * @param $email
-     * @param $link
-     * @return false|string
-     */
-    protected function encodeMessage($email, $link): false|string
-    {
-        $productPrice = $this->getTableData('prices', $link);
-        $product = $this->getTableData('products', $link);
-
-        return json_encode([
-            'message' => "Product with name: : " . $product->value('name') . " has benn updated",
-            'price'   => $productPrice->value('price'),
-            'name'    => $product->value('name'),
-            'email'   => $email
-        ]);
     }
 
     /**

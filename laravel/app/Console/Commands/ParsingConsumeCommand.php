@@ -48,8 +48,7 @@ class ParsingConsumeCommand extends Command
     public function handle(): void
     {
         echo "Consuming links to update...";
-        $callbackHandler = app(ProductPriceCallbackHandler::class);
-        $this->rabbitMqService->consumeMessages([$callbackHandler,'handle']);
+        $this->rabbitMqService->consumeMessages([app(ProductPriceCallbackHandler::class),'handle']);
     }
 
 }
