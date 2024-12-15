@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Callbacks\ProductPriceCallbackHandler;
 use App\Services\RabbitMqService;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
-class ParsingConsumeCommand extends Command
+class RabbitMQProductPriceUpdateCommand extends Command
 {
 
     /**
@@ -33,22 +33,23 @@ class ParsingConsumeCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'app:parsing-consume-command';
+    protected $signature = 'app:rabbit-m-q-product-price-update-command';
 
     /**
      * @var string
      */
-    protected $description = 'Parsing products and updates the price if needed!';
+    protected $description = 'Regular sending command to update product prices';
 
 
     /**
-     * @return void
      * @throws Exception
      */
     public function handle(): void
     {
-        echo "Consuming links to update...";
-        $this->rabbitMqService->consumeMessages([app(ProductPriceCallbackHandler::class),'handle']);
+        foreach (DB::table('products')->get('link')->all() as $product){
+            $message = json_encode(['link' => $product->link]);
+            $this->rabbitMqService->sendMessage($message);
+        }
     }
 
 }

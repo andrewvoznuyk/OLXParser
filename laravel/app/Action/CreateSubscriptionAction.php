@@ -4,6 +4,7 @@ namespace App\Action;
 
 use App\Contracts\RabbitMqServiceInterface;
 use App\Models\Subscription;
+use App\Services\MessageHandlerService;
 use Exception;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -34,37 +35,9 @@ class CreateSubscriptionAction
 
         $subscription->save();
 
-        $this->rabbitMqService->sendMessage($this->encodeMessage($email, $link));
+        $this->rabbitMqService->sendMessage(MessageHandlerService::encodeMessage($email, $link));
 
         return $subscription;
-    }
-
-    /**
-     * @param $email
-     * @param $link
-     * @return false|string
-     */
-    protected function encodeMessage($email, $link): false|string
-    {
-        $productPrice = $this->getTableData('prices', $link);
-        $product = $this->getTableData('products', $link);
-
-        return json_encode([
-            'message' => "You have subscribed on product with link: " . $product->value('name') . " successfully",
-            'price'   => $productPrice->value('price'),
-            'name'    => $product->value('name'),
-            'email'   => $email
-        ]);
-    }
-
-    /**
-     * @param string $table
-     * @param string $link
-     * @return Builder
-     */
-    protected function getTableData(string $table, string $link): Builder
-    {
-        return DB::table($table)->where('link', $link)->latest();
     }
 
 }
