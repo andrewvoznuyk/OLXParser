@@ -6,8 +6,6 @@ use App\Contracts\RabbitMqServiceInterface;
 use App\Models\Subscription;
 use App\Services\MessageHandlerService;
 use Exception;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\DB;
 
 class CreateSubscriptionAction
 {
